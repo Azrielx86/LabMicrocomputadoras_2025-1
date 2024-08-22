@@ -1,0 +1,23 @@
+	PROCESSOR 16f877A
+	INCLUDE <p16f877A.inc>
+	
+J equ H'26'
+K equ H'27'
+R1 equ H'28'
+C1	EQU 0x29
+
+	ORG 0
+	GOTO INICIO
+	ORG 5
+INICIO:
+	MOVF 	J,W
+	ADDWF 	K,0
+	MOVWF 	R1
+	
+	MOVF	STATUS,W
+	ANDLW	0x1 ; Recupera el bit de la bandera
+	MOVWF	C1
+	
+	GOTO INICIO
+	END
+
