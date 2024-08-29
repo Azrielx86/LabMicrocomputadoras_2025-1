@@ -1,0 +1,59 @@
+	PROCESSOR 16f877A
+	INCLUDE <p16f877A.inc> 
+AX	EQU 0x40 ; Valor Menor
+BX	EQU	0x41 ; Direccion del siguiente indice
+CX	EQU	0x42 ; Direccion del valor menor encontrado
+DX	EQU	0x43 ; Arreglo[BX]
+	ORG 0
+	GOTO INICIO 
+	ORG 5
+INICIO:
+	BCF		STATUS,7
+	BCF 	STATUS,RP1
+	BCF 	STATUS,RP0
+	MOVLW 	0x20
+	MOVWF 	FSR
+	MOVWF	BX ; Guarda la dirección inicla en BX
+	MOVF 	INDF,W
+	MOVWF	AX
+	INCF 	FSR
+LOOP:
+	MOVF	INDF,W
+	SUBWF	AX,W
+	
+	BTFSS	STATUS,0
+	GOTO 	MAYOR
+	MOVF	INDF,W
+	MOVWF	AX
+	MOVF	FSR,W
+	MOVWF	CX
+MAYOR:
+	INCF 	FSR
+	BTFSS 	FSR,6
+	GOTO 	LOOP
+; Swap
+	MOVF	BX,W
+	MOVWF	FSR
+	MOVF	INDF,W
+	MOVWF	DX
+	MOVF	AX,W
+	MOVWF	INDF
+	
+	MOVF 	CX,W
+	MOVWF	FSR
+	MOVF	DX,W
+	MOVWF	INDF
+	
+; Incrementar BX para no volver a pasar por los valores ya ordenados
+	INCF	BX
+	MOVF	BX,W
+	MOVWF	FSR
+	
+	MOVF	INDF,W
+	MOVWF	AX
+	INCF	FSR
+	
+	BTFSS 	FSR,6
+	GOTO	LOOP
+	GOTO 	$
+	END
