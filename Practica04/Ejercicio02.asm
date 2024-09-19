@@ -1,5 +1,5 @@
-processor 16f877
-include <p16f877.inc>
+    PROCESSOR 16f877A
+    INCLUDE <p16f877A.inc>
 
 SALIDA 	EQU 0x20
 ;Constantes con los valores para prender los
@@ -41,6 +41,8 @@ LOOP:
 	MOVLW 0x07
 	ANDWF PORTA,W
 	
+	; Dependiendo de la opcion seleccionada, se toma la opcion
+	; correspondiente.
 	ADDWF PCL,F
 	GOTO APAGA
 	GOTO ENCIENDE
@@ -50,32 +52,40 @@ LOOP:
 	GOTO BLINK
 	GOTO LOOP
 	GOTO LOOP
+; La opcion para encender unicamente pone todos los bits del
+; puerto b en 1.
 ENCIENDE:
 	MOVLW 0xFF
 	MOVWF PORTB
 	GOTO LOOP
+; Para la opcion de apagar, todos los bits del puerto b se ponen en 0
 APAGA:
 	CLRF PORTB
 	GOTO LOOP
+; La opcion de corrimiento a la derecha primero establece REG1
+; en 0x01, para colocarle un bit, el cual se ira recorriendo, y luego
+; entra en un loop interno.
 CORRI_R:
 	MOVLW 0x01
 	MOVWF REG1
 CORRI_R_LOOP:
-	RLF	REG1,F
+	RLF	REG1,F      ; Se realiza el desplazamiento.
 	MOVFW REG1
-	MOVWF PORTB
+	MOVWF PORTB     ; Se pasa REG1 al puerto B.
 	CALL RETARDO_500ms
-	MOVLW 0x02
-	XORWF PORTA,W
-	BTFSS STATUS,Z
-	GOTO LOOP
-	GOTO CORRI_R_LOOP
-
+	MOVLW 0x02      ; Se compara si se sigue en la opción requerida (2)
+	XORWF PORTA,W   ; mediante un XOR
+	BTFSS STATUS,Z  ; En caso de que el puerto A ya no tenga la opcion
+	GOTO LOOP       ; 2, se sale del loop, en caso contrario, se
+	GOTO CORRI_R_LOOP  ; sigue ejecutando.
+	
+; El corrimiento a la izquierda se realiza de la misma manera
+; que el corrimiento a la derecha.
 CORRI_L:
 	MOVLW 0x01
 	MOVWF REG1
 CORRI_L_LOOP:
-	RRF	REG1,F
+	RLF	REG1,F
 	MOVFW REG1
 	MOVWF PORTB
 	CALL RETARDO_500ms
@@ -85,67 +95,74 @@ CORRI_L_LOOP:
 	GOTO LOOP
 	GOTO CORRI_L_LOOP
 
+; De manera similar a los otroc corrimientos, se establece REG1
+; en 0x01, para colocarle un bit, el cual se ira recorriendo, y luego
+; entra en un loop interno. Se limpia REG2 que servira para definir
+; hacia que lado se ira moviendo el bit
 CORRI_LR:
 	MOVLW 0x01
 	MOVWF REG1
-	clrf REG2
+	CLRF REG2
 CORRI_LR_LOOP:
 	CALL RETARDO_500ms
-	MOVLW 0x04
-	XORWF PORTA,W
+	MOVLW 0x04          ; Se comprueba que siga en la opcion 4 de PORTA
+	XORWF PORTA,W       ; mediante un XOR, si es distinto, sale del loop.
 	BTFSS STATUS,Z
 	GOTO LOOP
 
-	MOVFW REG1
+	MOVFW REG1          ; Se mueve el contenido de REG1 al puerto B.
 	MOVWF PORTB
 
-	MOVFW REG2
-	ADDWF PCL, F		
-	GOTO CORRI_LR_L
-	GOTO CORRI_LR_R
+	MOVFW REG2          ; Se comprueba el estado del registro 2,
+	ADDWF PCL, F
+	GOTO CORRI_LR_L     ; Si es cero, es corrimiento a la izquierda
+	GOTO CORRI_LR_R     ; Si es uno, es corrimiento a la derecha
 CORRI_LR_R:
-	RRF	REG1,F
-	MOVLW 0X01
-	ANDWF REG1,W
+	RRF	REG1,F          ; Se realiza el corrimiento
+	MOVLW 0X01          ; Se comprueba si REG1 es 1 (que ya llego al bit
+	ANDWF REG1,W        ; final del corrimiento.
 	BTFSC STATUS,Z
 	GOTO CORRI_LR_LOOP
-	CLRF REG2
-	GOTO CORRI_LR_LOOP
+	CLRF REG2           ; Si llegó al final, se limpia REG2
+	GOTO CORRI_LR_LOOP  ; para marcar el corrimiento al otro lado.
 CORRI_LR_L:
-	RLF	REG1,F
-	MOVLW 0X80
-	ANDWF REG1,W
-	BTFSC STATUS,Z
+	RLF	REG1,F          ; Se realiza el corrimiento
+	MOVLW 0X80          ; Se comprueba si el bit mas significativo es 1
+	ANDWF REG1,W        ; es decir, que ya llego al ultimo bit de este
+	BTFSC STATUS,Z      ; corrimiento.
 	GOTO CORRI_LR_LOOP
-		;CLRF REG2
 	BCF STATUS,C
-	MOVLW 0x01
-	MOVWF REG2
+	MOVLW 0x01          ; Si llego al ultimo bit, se establece REG1
+	MOVWF REG2          ; en 1 para marcar el corrimiento al otro lado.
 	GOTO CORRI_LR_LOOP
+
+; Para el parpadeo unicamente se usa REG1 para marcar si se encienden
+; o se apagan los leds.
 BLINK:
     CALL RETARDO_500ms
-    
-    MOVLW 0xFF
-    ANDWF REG1,W
-    BTFSC STATUS,Z
+    MOVLW 0xFF          ; Se establece W con todos los bits en 1
+    ANDWF REG1,W        ; Mediante un AND, se compara con REG1 para
+    BTFSC STATUS,Z      ; verificar si hay que encender o apagar.
     GOTO BLINK_ON
     GOTO BLINK_OFF
-
+; Para encender los leds, se establece REG1 en 0xFF y se copia a PORTB.
 BLINK_ON:
     MOVLW 0xFF
     MOVWF REG1
     MOVWF PORTB
-    GOTO BLINK_STAY
+    GOTO BLINK_STAY ; Pasa a comprobar si se sigue en la opcion BLINK.
+; De manera similar, se establece REG1 en 0x00 y se copia a PORTB.
 BLINK_OFF:
     MOVLW 0x00
     MOVWF REG1
     MOVWF PORTB
+
 BLINK_STAY:
-	MOVLW 0x05
-	XORWF PORTA,W
+	MOVLW 0x05      ; Se compara PORTA para ver si se sigue en la opcion
+	XORWF PORTA,W   ; BLINK mediante un XOR.
 	BTFSS STATUS,Z
-	GOTO LOOP
-	GOTO BLINK
+	GOTO LOOP       ; Si cambio, sale del loop
+	GOTO BLINK      ; En caso contrario, sigue con el BLINK
 	
     
 
