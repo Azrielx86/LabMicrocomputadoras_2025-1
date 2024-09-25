@@ -56,7 +56,7 @@ CORRI_R:
 	MOVLW 0x01
 	MOVWF REG1
 CORRI_R_LOOP:
-	RLF	REG1,F      ; Se realiza el desplazamiento.
+	RRF	REG1,F      ; Se realiza el desplazamiento.
 	MOVFW REG1
 	MOVWF PORTB     ; Se pasa REG1 al puerto B.
 	CALL RETARDO_500ms
