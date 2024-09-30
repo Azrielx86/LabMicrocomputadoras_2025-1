@@ -1,18 +1,8 @@
     PROCESSOR 16f877A
     INCLUDE <p16f877A.inc>
 
-SALIDA 	EQU 0x20
-;Constantes con los valores para prender los
-;leds de cada estado
-EDO1 	EQU 0x41 ;0100 0001 verde1    = on; rojo2     = on 
-EDO2 	EQU 0x21 ;0010 0001 amaril1o1 = on; rojo2     = on 
-EDO3 	EQU 0x14 ;0001 0100 rojo1     = on; verde2    = on 
-EDO4 	EQU 0x12 ;0001 0010 rojo1     = on; amarillo2 = on 
-
 ;Registros auxiliares para hacer el parpadeo del led
-EDO1_Inv	EQU	0xBF
 BLINKS	equ	0x24	;Contador para blinks
-MASK	equ	0x25
 
 ;Definicion de Variables y constantes para
 ;La rutina de retardo
@@ -20,10 +10,6 @@ MASK	equ	0x25
 valor1 equ h'21'
 valor2 equ h'22'
 valor3 equ h'23'
-;Constantes se utilizan como literales
-cte1 equ 20h
-cte2 equ 50h
-cte3 equ 60h
 
 REG1 equ 0x24
 REG2 equ 0x25
@@ -52,6 +38,7 @@ LOOP:
 	GOTO BLINK
 	GOTO LOOP
 	GOTO LOOP
+
 ; La opcion para encender unicamente pone todos los bits del
 ; puerto b en 1.
 ENCIENDE:
@@ -69,11 +56,11 @@ CORRI_R:
 	MOVLW 0x01
 	MOVWF REG1
 CORRI_R_LOOP:
-	RLF	REG1,F      ; Se realiza el desplazamiento.
+	RRF	REG1,F      ; Se realiza el desplazamiento.
 	MOVFW REG1
 	MOVWF PORTB     ; Se pasa REG1 al puerto B.
 	CALL RETARDO_500ms
-	MOVLW 0x02      ; Se compara si se sigue en la opción requerida (2)
+	MOVLW 0x02      ; Se compara si se sigue en la opciï¿½n requerida (2)
 	XORWF PORTA,W   ; mediante un XOR
 	BTFSS STATUS,Z  ; En caso de que el puerto A ya no tenga la opcion
 	GOTO LOOP       ; 2, se sale del loop, en caso contrario, se
@@ -123,7 +110,7 @@ CORRI_LR_R:
 	ANDWF REG1,W        ; final del corrimiento.
 	BTFSC STATUS,Z
 	GOTO CORRI_LR_LOOP
-	CLRF REG2           ; Si llegó al final, se limpia REG2
+	CLRF REG2           ; Si llegï¿½ al final, se limpia REG2
 	GOTO CORRI_LR_LOOP  ; para marcar el corrimiento al otro lado.
 CORRI_LR_L:
 	RLF	REG1,F          ; Se realiza el corrimiento
@@ -167,7 +154,7 @@ BLINK_STAY:
     
 
 CONFIG_INICIAL:
-	;Camio al banco 1
+	;Cambio al banco 1
 	BCF STATUS, RP1	;RP1 = 0
 	BSF STATUS, RP0	;RP0 = 1
 	
@@ -187,24 +174,6 @@ CONFIG_INICIAL:
 
 	RETURN
 
-;Subrutina para retardo de 2seg
-RETARDO_2000ms 
-	MOVLW .200
-	MOVWF valor1
-tres:
-	MOVLW .200
-	MOVWF valor2
-dos: 
-	MOVLW .82
-	MOVWF valor3
-uno: 
-	DECFSZ 	valor3
-	GOTO 	uno
-	DECFSZ 	valor2
-	GOTO 	dos
-	DECFSZ 	valor1
-	GOTO 	tres
-	RETURN
 ;Subrutina para retardo de 0.5seg
 RETARDO_500ms 
 	MOVLW .60

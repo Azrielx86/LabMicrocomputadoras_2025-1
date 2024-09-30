@@ -5,3 +5,4 @@
 *.map
 *.O
 *.mcs
+*/__pycache__
