@@ -1,9 +1,6 @@
     PROCESSOR 16f877a
     INCLUDE <p16f877a.inc>
 
-REG0    EQU     0x20
-REG1    EQU     0x21
-
 valor1 equ h'41'
 valor2 equ h'42'
 valor3 equ h'43'
@@ -12,20 +9,18 @@ valor3 equ h'43'
 	GOTO INICIO
 	ORG 5
 
-loop_stay MACRO valuein,compare_with,ret_loop,inner_loop
-    MOVLW   valuein
-    XORWF   compare_with,W
-    BTFSS   STATUS,Z
-    GOTO    ret_loop
-    GOTO    inner_loop
-ENDM
 
 INICIO:
 	;Subrutina para configurar los puertos de I/O
 	CALL CONFIG_INICIAL
 LOOP:
+	;Recupera los 3 bits menos significativos del puerto A y los suma al 
+    ;Program counter latch para hacer un salto como un switch case
+	;Casos que llevan a loop son opciones invalidas
+
 	MOVLW 0x07
 	ANDWF PORTA,W
+	
 	
 	ADDWF PCL,F
 	GOTO LOOP
@@ -39,49 +34,84 @@ LOOP:
 	GOTO LOOP
 
 SERV_DER:
+	;Se genera una señal PWM mediante el uso de retardos. Para este caso se debe
+	; de mantener encendido durante 2.5 ms y apagado durante 18ms
+
+	;Enciende todos los pines del puerto C
     MOVLW   0xFF
     MOVWF   PORTC
+
+	;Retardo de 2.5ms
     CALL RETARDO_2ms
 	CALL RETARDO_05ms
+
+	;Apaga todos los pines del puerto C
     CLRF    PORTC
+
+	;Retardo de 18ms
     CALL RETARDO_18ms
+
     GOTO LOOP
     
 SERV_CEN:
+	;Se genera una señal PWM mediante el uso de retardos. Para este caso se debe
+	; de mantener encendido durante 1.5 ms y apagado durante 18.5ms
+	
+	;Enciende todos los pines del puerto C
     MOVLW   0xFF
     MOVWF   PORTC
+
+	;retardo de 1.5ms
     CALL RETARDO_1ms
     CALL RETARDO_05ms
+
+	;Apaga todos los pines del puerto C
     CLRF    PORTC
+
+	;retardo de 18.5ms
     CALL RETARDO_05ms
     CALL RETARDO_18ms
+
     GOTO LOOP
 
 SERV_IZQ:
+	;Se genera una señal PWM mediante el uso de retardos. Para este caso se debe
+	; de mantener encendido durante 0.5 ms y apagado durante 19.5ms
+
+	;Enciende todos los pines del puerto C
     MOVLW   0xFF
     MOVWF   PORTC
+	
+	;Retardo de 0.5ms
     CALL RETARDO_05ms
+
+	;Apaga todos los pines del puerto C
     CLRF    PORTC
+
+	;retardo de 19.5ms
     CALL RETARDO_1ms
 	CALL RETARDO_05ms
     CALL RETARDO_18ms
+
     GOTO LOOP
 
 CONFIG_INICIAL:
 	;Camio al banco 1
-	BCF STATUS, RP1	;RP1 = 0
-	BSF STATUS, RP0	;RP0 = 1
+	BCF STATUS, RP1	
+	BSF STATUS, RP0	
 	
 	;configura los pines del puerto B y C como salidas
-	CLRF    TRISB       ; TRISB = 0x00
-	CLRF    TRISC       ; TRISC = 0x00
-	MOVLW   0x06        ; Configura el puerto A
-	MOVWF   ADCON1      ;   como entradas digitales
+	CLRF    TRISB       
+	CLRF    TRISC       
+
+	;Configura los pines del puerto A como salidas digitales
+	MOVLW   0x06        
+	MOVWF   ADCON1      
 	MOVLW   0x3F
 	MOVWF   TRISA
 
 	;Cambio al banco 0 
-	BCF STATUS, RP0	; RP0 = 0
+	BCF STATUS, RP0
 
 	;Limpia los puertos
 	CLRF PORTB
@@ -143,3 +173,11 @@ uno_05:
 	RETURN
 
 	END
+
+loop_stay MACRO valuein,compare_with,ret_loop,inner_loop
+    MOVLW   valuein
+    XORWF   compare_with,W
+    BTFSS   STATUS,Z
+    GOTO    ret_loop
+    GOTO    inner_loop
+;ENDM
