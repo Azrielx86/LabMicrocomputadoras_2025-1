@@ -11,7 +11,7 @@ valor3 equ 0x43
 
 INICIO:
     CALL    CONFIG_INICIAL
-    MOVLW   0xC7        ; Selecciona el canal 0
+    MOVLW   0xE9        ; Selecciona el canal 5
     ANDWF   ADCON0,F
 
     MOVLW   0x05
@@ -35,7 +35,7 @@ CONFIG_INICIAL:
 	CLRF    TRISD
     CLRF    ADCON1
 	BCF     STATUS,RP0
-    ; Configura los pines del puerto A como entradas analógicas.
+    ; Configura los pines del puerto A como entradas analï¿½gicas.
     MOVLW   0xC0    ; Establece la frecuencia de muestreo
     MOVWF   ADCON0  ; como la interna del pic
 
@@ -45,9 +45,9 @@ CONFIG_INICIAL:
 	RETURN
 	
 RET_200us:
-	MOVLW   0x02
+	MOVLW   0x01
 	MOVWF   valor1
-	MOVLW   0xA4
+	MOVLW   0x20
 	MOVWF   valor2
 	DECFSZ 	valor2
 	GOTO 	$ - 1
