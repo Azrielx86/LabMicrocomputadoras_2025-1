@@ -1,95 +1,121 @@
     PROCESSOR 16f877a
     INCLUDE <p16f877a.inc>
 
-ACH0    EQU     0x20
-ACH1    EQU     0x21
-ACH2    EQU     0x22
-
-
 valor1 equ 0x41
 valor2 equ 0x42
 valor3 equ 0x43
-    
+
+RANGO0 equ 0x32
+RANGO1 equ 0x66
+RANGO2 equ 0x99
+RANGO3 equ 0xCA
+RANGO4 equ 0xF5
+RANGO5 equ 0xFF
+
+RESULT equ 0x26   
     ORG 0
     GOTO INICIO
     ORG 5
 
 INICIO:
     CALL    CONFIG_INICIAL
-    MOVLW   0xE9
+    MOVLW   0xE9        ; Selecciona el canal 0
     MOVWF   ADCON0
-    CALL    RET_200us
+	MOVLW 	0x00
 LOOP:
-    ; Cambia al canal 5
-    MOVLW   0xED
-    MOVWF   ADCON0
-    CALL    RET_200us
+	MOVWF PORTD	
 
-    BTFSC   ADCON0,2    ; Se revisa GO/DONE
-    GOTO    $ - 1   ; Espera a la lectura
-    MOVFW   ADRESH
-    MOVWF   ACH0
-    
-    ; Cambia al canal 6
-    MOVLW   0xF5
-    MOVWF   ADCON0
-    CALL    RET_200us
+	CALL READ_PORT
 
-    BTFSC   ADCON0,2    ; Se revisa GO/DONE
-    GOTO    $ - 1   ; Espera a la lectura
-    MOVFW   ADRESH
-    MOVWF   ACH1
-    
-    ; Cambia al canal 7
-    MOVLW   0xFD
-    MOVWF   ADCON0
-    CALL    RET_200us
-    
-    BTFSC   ADCON0,2    ; Se revisa GO/DONE
-    GOTO    $ - 1   ; Espera a la lectura
-    MOVFW   ADRESH
-    MOVWF   ACH2
-    
-    ; Comparacion
-CASE1:
-    ; ACH0 > ACH1 AND ACH2
-    MOVFW   ACH1
-    SUBWF   ACH0,W
-    BTFSS   STATUS,C
-    GOTO CASE2
-    
-    MOVFW   ACH2
-    SUBWF   ACH0,W
-    BTFSS   STATUS,C
-    GOTO CASE2
-    
-    MOVLW   0x01
-    MOVWF   PORTD
-    GOTO LOOP
-    
-    
-CASE2:
-    ; ACH1 > ACH0 AND ACH2
-    MOVFW   ACH0
-    SUBWF   ACH1,W
-    BTFSS   STATUS,C
-    GOTO CASE3
-    
-    MOVFW   ACH2
-    SUBWF   ACH1,W
-    BTFSS   STATUS,C
-    GOTO CASE3
-    
-    MOVLW   0x02
-    MOVWF   PORTD
-    GOTO LOOP
 
-CASE3:
-    ; ACH2 > ACH0 AND ACH1, se asume que ACH2 es mayor
-    MOVLW   0x03
-    MOVWF   PORTD
-    GOTO LOOP
+	MOVLW	RANGO0
+	SUBWF	RESULT, W ;RESULTADO - RANGO1- RESULTADO < RANGO1?
+	BTFSC	STATUS,C
+	GOTO 	COMP2 	
+	
+	MOVLW 0X00
+	CALL PRINT_SS7
+
+	GOTO LOOP	
+
+COMP2
+	MOVLW	RANGO1
+	SUBWF	RESULT, W ;RESULTADO - RANGO1- RESULTADO < RANGO1?
+	BTFSC	STATUS,C
+	GOTO 	COMP3 	
+	
+	MOVLW 0X01
+	CALL PRINT_SS7
+
+	GOTO LOOP
+
+COMP3
+	MOVLW	RANGO2
+	SUBWF	RESULT, W ;RESULTADO - RANGO1- RESULTADO < RANGO1?
+	BTFSC	STATUS,C
+	GOTO 	COMP4 	
+	
+	MOVLW 0X02
+	CALL PRINT_SS7
+
+	GOTO LOOP
+
+COMP4
+	MOVLW	RANGO3
+	SUBWF	RESULT, W ;RESULTADO - RANGO1- RESULTADO < RANGO1?
+	BTFSC	STATUS,C
+	GOTO 	COMP5 	
+	
+	MOVLW 0X03
+	CALL PRINT_SS7
+
+	GOTO LOOP		
+
+COMP5
+	MOVLW	RANGO4
+	SUBWF	RESULT, W ;RESULTADO - RANGO1- RESULTADO < RANGO1?
+	BTFSC	STATUS,C
+	GOTO 	COMP6 	
+	
+	MOVLW 0X04
+	CALL PRINT_SS7
+
+	GOTO LOOP
+
+COMP6
+	
+	MOVLW 0X05
+	CALL PRINT_SS7
+			
+	GOTO LOOP
+
+
+READ_PORT:
+	MOVLW   0x04
+    IORWF   ADCON0,F    ; Enciende ADON y la bandera GO/DONE
+    CALL    RET_200us
+WAIT:
+    BTFSC   ADCON0,2    ; Se revisa GO/DONE
+    GOTO   	WAIT   		; Espera a la lectura
     
+    MOVFW   ADRESH
+	MOVWF   RESULT
+    
+	RETURN
+    
+PRINT_SS7
+	
+	ANDLW	0x07
+	ADDWF	PCL,F
+
+	RETLW    0x00
+	RETLW 	 0X01
+	RETLW 	 0X02
+	RETLW 	 0X03
+	RETLW    0X04
+	RETLW 	 0X05
+	RETLW    0x00
+	RETLW    0x00
     
 CONFIG_INICIAL:
     CLRF PORTA
@@ -98,7 +124,7 @@ CONFIG_INICIAL:
 	CLRF    TRISD
     CLRF    ADCON1
 	BCF     STATUS,RP0
-    ; Configura los pines del puerto A como entradas anal?gicas.
+    ; Configura los pines del puerto A como entradas anal gicas.
     MOVLW   0xC0    ; Establece la frecuencia de muestreo
     MOVWF   ADCON0  ; como la interna del pic
 
@@ -108,9 +134,9 @@ CONFIG_INICIAL:
 	RETURN
 	
 RET_200us:
-	MOVLW   0x01
+	MOVLW   0x02
 	MOVWF   valor1
-	MOVLW   0x20
+	MOVLW   0xA4
 	MOVWF   valor2
 	DECFSZ 	valor2
 	GOTO 	$ - 1
