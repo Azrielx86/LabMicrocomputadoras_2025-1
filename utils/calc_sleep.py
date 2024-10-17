@@ -10,3 +10,6 @@ def calc_sleep_2(a: int, b: int, output: Literal["us", "ms", "s"]) -> float:
     t =  (b * ((3 * a) + 1) + (3 * b) + 3) * 0.2e-6
     return t * units[output]
     
+def calc_sleep_3(a: int, b: int, c: int, output: Literal["us", "ms", "s"]) -> float:
+    t = c * (b * (a + 1) + (3 * b) + 1) + (3 * c) + 3
+    return t * 0.2e-6 * units[output]
