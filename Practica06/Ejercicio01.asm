@@ -42,7 +42,7 @@ CONFIG_INICIAL:
 	BSF     STATUS,RP0
 	CLRF    TRISD
 
-    ; Configura Todos pines del puerto A como entradas analógicas. Resultado 
+    ; Configura Todos pines del CAD como entradas analógicas. Resultado 
     ; justificado a la izquiera (8 bits del resultado se guardan en ADRESH)
     CLRF    ADCON1
 
