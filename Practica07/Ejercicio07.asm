@@ -13,8 +13,8 @@ valor3 equ 0x43
 	ORG 5
 INICIO:
     CALL    CONFIG_INICIAL
-    BSF     ADCON0,2
 LOOP:
+    BSF     ADCON0,2
     CALL    RET_200us
     ; Obtener temperatura
     BTFSC   ADCON0,2
@@ -32,17 +32,8 @@ LOOP:
     GOTO    LOOP
     
     MOVFW   ADRESH
-    MOVWF   TMP
-
-    ; 100mV = 0x03
-    ; Dividir el resultado
-    MOVLW   0x03
-    SUBWF   TMP,W
-    BTFSS   STATUS,C
-    GOTO    $ + 4
-    MOVWF   TMP
-    INCF    TEMPERATURE
-    GOTO    $ - 6
+    MOVWF   TEMPERATURE
+    RLF     TEMPERATURE ; TODO : Ver por que esto funciona xd
 
     ; Transmitir dato
     ; Basado en "divisiones" (con restas), se obtienen las centenas,
@@ -86,7 +77,6 @@ LOOP:
     MOVLW   A'\n'
     CALL    TRANSMITE
 
-    BSF     ADCON0,2
     GOTO    LOOP
 
 CONFIG_INICIAL:
@@ -98,7 +88,6 @@ CONFIG_INICIAL:
     MOVWF   SPBRG
     BCF     TXSTA,SYNC  ; Configura el modo asincrono
     BSF     TXSTA,TXEN  ; Habilita la transmision
-    CLRF    TRISB       ; Puerto B como salida.
     
     BCF     STATUS,RP0
     BSF     RCSTA,SPEN
@@ -106,8 +95,6 @@ CONFIG_INICIAL:
 
     MOVLW   0xE9
     MOVWF   ADCON0
-
-    CLRF    PORTB
     
     RETURN
     
