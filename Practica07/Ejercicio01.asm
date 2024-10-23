@@ -45,4 +45,6 @@ CONFIG_INICIAL:
     BSF     RCSTA,SPEN  ; Habilita el puerto serie
     BSF     RCSTA,CREN  ; Habilita la recepcion de datos.
     
+    RETURN
+
     END
