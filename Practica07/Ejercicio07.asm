@@ -2,7 +2,6 @@
 	INCLUDE<p16F877a.inc>
 REGA     EQU     0x20
 TEMPERATURE    EQU     0x21
-TMP     EQU     0x22
 
 valor1 equ 0x41
 valor2 equ 0x42
@@ -20,7 +19,6 @@ LOOP:
     BTFSC   ADCON0,2
     GOTO    $ - 1
     
-    CLRF    TMP
     CLRF    TEMPERATURE
     CLRF    REGA
     
