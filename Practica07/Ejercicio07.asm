@@ -19,16 +19,14 @@ LOOP:
     BTFSC   ADCON0,2    ; Espera mientras GO/DONE no haya terminado
     GOTO    $ - 1
     
-    MOVFW   ADRESH
-    MOVWF   PORTB
-    MOVWF   TEMPERATURE
-    BCF     STATUS,C
-    RLF     TEMPERATURE ; TODO : Ver por que esto funciona xd
+    MOVFW   ADRESH      ; Se lee el dato obtenido por el convertidor A/D
+    MOVWF   TEMPERATURE ; y se almacena en el registro para la temperatura.
+    BCF     STATUS,C    ; Se limpia el carry para hacer el corrido.
+    RLF     TEMPERATURE ; Se ajusta el resultado del sensor.
 
     ; Transmitir dato
     ; Basado en "divisiones" (con restas), se obtienen las centenas,
-    ; decenas y unidades. conforme se van obteniendo, se imprimen
-    ; en pantalla.
+    ; decenas y unidades. conforme se van obteniendo, se envían por TX.
     CLRF    REGA
     MOVLW   0x64
     SUBWF   TEMPERATURE,W
@@ -65,9 +63,10 @@ LOOP:
     ADDLW   0x30
     CALL    TRANSMITE
 
-    MOVLW   A'\n'
-    CALL    TRANSMITE
-    CALL    RET_1s
+    MOVLW   A'\n'       ; Para ver el dato en la terminal, se envía un
+    CALL    TRANSMITE   ; salto de línea.
+    CALL    RET_1s      ; 1s de retraso para no enviar los
+                        ; datos constantemente
     GOTO    LOOP
 
 CONFIG_INICIAL:
@@ -85,7 +84,7 @@ CONFIG_INICIAL:
     BSF     RCSTA,SPEN
     BSF     RCSTA,CREN  ; Habilita la recepcion de datos.
 
-    MOVLW   0xE9
+    MOVLW   0xE9        ; Seleccion del canal 5.
     MOVWF   ADCON0
     CLRF    PORTB
     
