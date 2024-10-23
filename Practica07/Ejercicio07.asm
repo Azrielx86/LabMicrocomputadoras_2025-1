@@ -13,30 +13,23 @@ valor3 equ 0x43
 INICIO:
     CALL    CONFIG_INICIAL
 LOOP:
-    BSF     ADCON0,2
+    BSF     ADCON0,2    ; Se activa la bandera GO/DONE
     CALL    RET_200us
     ; Obtener temperatura
-    BTFSC   ADCON0,2
+    BTFSC   ADCON0,2    ; Espera mientras GO/DONE no haya terminado
     GOTO    $ - 1
     
-    CLRF    TEMPERATURE
-    CLRF    REGA
-    
-    MOVLW   0x00
-    IORWF   ADRESH,W
-    BTFSS   STATUS,Z
-    GOTO    $ + 3
-    BSF     ADCON0,2
-    GOTO    LOOP
-    
     MOVFW   ADRESH
+    MOVWF   PORTB
     MOVWF   TEMPERATURE
+    BCF     STATUS,C
     RLF     TEMPERATURE ; TODO : Ver por que esto funciona xd
 
     ; Transmitir dato
     ; Basado en "divisiones" (con restas), se obtienen las centenas,
     ; decenas y unidades. conforme se van obteniendo, se imprimen
     ; en pantalla.
+    CLRF    REGA
     MOVLW   0x64
     SUBWF   TEMPERATURE,W
     BTFSS   STATUS,C
@@ -86,6 +79,7 @@ CONFIG_INICIAL:
     MOVWF   SPBRG
     BCF     TXSTA,SYNC  ; Configura el modo asincrono
     BSF     TXSTA,TXEN  ; Habilita la transmision
+    CLRF    TRISB
     
     BCF     STATUS,RP0
     BSF     RCSTA,SPEN
@@ -93,6 +87,7 @@ CONFIG_INICIAL:
 
     MOVLW   0xE9
     MOVWF   ADCON0
+    CLRF    PORTB
     
     RETURN
     
