@@ -1,28 +1,23 @@
 	PROCESSOR 16F877A
 	INCLUDE<p16F877a.inc>
+
 CHR EQU 0x20
+
 	ORG 0
 	GOTO INICIO
 	ORG 5
+
 INICIO:
-    BSF     STATUS,RP0  ; Cambio al banco 1
-    BCF     STATUS,RP1
     
-    BSF     TXSTA,BRGH  ; 
-    MOVLW   0x81        ; Establece el baudrate en 9600 baudios.
-    MOVWF   SPBRG
-    BCF     TXSTA,SYNC  ; Configura el modo asincrono
-    BSF     TXSTA,TXEN  ; Habilita la transmision
-    CLRF    TRISB       ; Puerto B como salida.
-    BCF     STATUS,RP0
-    BSF     RCSTA,SPEN
-    BSF     RCSTA,CREN  ; Habilita la recepcion de datos.
-    CLRF    PORTB
+    CALL    CONFIG_INICIAL
     
 RECIBE:
-    BTFSS   PIR1,RCIF   ; Comprueba si ya se recibieron datos
+
+    ; Comprueba si ya se recibieron datos
+    BTFSS   PIR1,RCIF   
     GOTO    RECIBE
     
+    ; Lee el dato Recibido, lo guarda en el registro CHR
     MOVFW   RCREG
     MOVWF   CHR
     
@@ -38,7 +33,7 @@ RECIBE:
     GOTO    RECIBE
 
 
-    ; Para todos los demás casos, enciende los motores.
+    ; Para todos los demï¿½s casos, enciende los motores.
     MOVLW   0x06
     MOVWF   PORTD
     
@@ -47,6 +42,7 @@ RECIBE:
     XORWF   CHR,W
     BTFSS   STATUS,Z
     GOTO    $ + 4
+    ; Ambos motores a la derecha
     MOVLW   0x05
     MOVWF   PORTB
     GOTO    RECIBE
@@ -56,6 +52,7 @@ RECIBE:
     XORWF   CHR,W
     BTFSS   STATUS,Z
     GOTO    $ + 4
+     ; Ambos motores a la izquierda
     MOVLW   0x0A
     MOVWF   PORTB
     GOTO    RECIBE
@@ -65,6 +62,7 @@ RECIBE:
     XORWF   CHR,W
     BTFSS   STATUS,Z
     GOTO    $ + 4
+    ; motor 1 derecha, motor 2 izquierda
     MOVLW   0x09
     MOVWF   PORTB
     GOTO    RECIBE
@@ -74,8 +72,37 @@ RECIBE:
     XORWF   CHR,W
     BTFSC   STATUS,Z
     GOTO    $ + 3
+    ; motor 1 izquierda, motor 2 derecha
     MOVLW   0x06
     MOVWF   PORTB
+    
     GOTO    RECIBE
+
+CONFIG_INICIAL;
+
+    ; Cambio al banco 1
+    BSF     STATUS,RP0  
+    BCF     STATUS,RP1
+    
+    BSF     TXSTA,BRGH  ;  Configura la bandera BRGH para alta velocidad.
+
+    ;   Establece el baudrate en 9600 baudios.
+    MOVLW   0x81        
+    MOVWF   SPBRG
+
+    BCF     TXSTA,SYNC  ; Configura el modo asincrono
+    BSF     TXSTA,TXEN  ; Habilita la transmision
+    CLRF    TRISB       ; Puerto B como salida.
+    CLRF    TRISD       ; Puerto D como salida
+    
+    BCF     STATUS,RP0
+
+    BSF     RCSTA,SPEN  ; Habilita el puerto serie
+    BSF     RCSTA,CREN  ; Habilita la recepcion de datos.
+
+    CLRF    PORTB
+    CLRF    PORTD
+
+    RETURN
     
     END
