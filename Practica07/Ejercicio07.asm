@@ -67,7 +67,7 @@ LOOP:
 
     MOVLW   A'\n'
     CALL    TRANSMITE
-
+    CALL    RET_1s
     GOTO    LOOP
 
 CONFIG_INICIAL:
@@ -108,6 +108,21 @@ RET_200us:
 	GOTO 	$ - 1
 	DECFSZ 	valor1
 	GOTO 	$ - 5
+	RETURN
+
+RET_1s:
+	MOVLW   0x1A
+	MOVWF   valor1
+	MOVLW   0xFF
+	MOVWF   valor2
+    MOVLW   0xFF
+    MOVWF   valor3
+    DECFSZ 	valor3
+	GOTO 	$ - 1
+	DECFSZ 	valor2
+	GOTO 	$ - 5
+	DECFSZ 	valor1
+	GOTO 	$ - 9
 	RETURN
 
     END
