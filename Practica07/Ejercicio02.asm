@@ -16,7 +16,8 @@ RECIBE:
     
     MOVFW   RCREG       ; Almacena el dato leido en W
     MOVWF   TXREG       ; Mueve el dato obtenido a W
-    
+    MOVWF	PORTB
+
     BSF     STATUS,RP0  ; Cambio del banco para el registro de transmision
 
 TRANSMITE:
@@ -29,6 +30,8 @@ CONFIG_INICIAL:
     ;Cambia al banco 1
     BSF     STATUS,RP0
     BCF     STATUS,RP1
+
+	CLRF 	TRISB		;Puerto B como salida
     
     BSF     TXSTA,BRGH  ; Configura la bandera BRGH para alta velocidad
 
@@ -44,6 +47,8 @@ CONFIG_INICIAL:
     
     BSF     RCSTA,SPEN  ; Habilita el puerto serie
     BSF     RCSTA,CREN  ; Habilita la recepcion de datos.
+
+	CLRF PORTB
     
     RETURN
 
