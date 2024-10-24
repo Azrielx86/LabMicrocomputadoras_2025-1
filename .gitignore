@@ -6,3 +6,11 @@
 *.O
 *.mcs
 */__pycache__
+*.ccspjt
+*.sym
+*.esym
+*.STA
+*.tre
+*.xsym
+*.err
+*/__history
