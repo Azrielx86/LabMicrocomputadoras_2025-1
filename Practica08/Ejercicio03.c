@@ -9,8 +9,8 @@ void main()
 
    while (1)
    {
-      var1 = input_a();
-      output_b(var1);
+      var1 = input_a(); // Recibe la entrada de A
+      output_b(var1); // Redirige el valor de A al puerto B
    }
 }
 
