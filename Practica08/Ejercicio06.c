@@ -9,7 +9,8 @@ void main()
 {
   int shift; // Variable para el bit shift.
   int leds_on = 1; // Variable para el blink
-  int i; // Contador
+  int i;           // Contador
+  int dir = 0;
   char in; // Entrada al PIC por RX
   loop {
     if (kbhit() == 1) // Si recibe la entrada de una tecla,
@@ -41,7 +42,25 @@ void main()
         delay_ms(200);
       }
       break;
-    case '4': // Selección 4 ejecuta un blink.
+    case '4': // Selección 4 hace recorridos de izquierda a derecha y
+              // viceversa.
+      shift = 0x80;
+      dir = 0;
+      for (i = 0; i < 16; i++)
+      {
+        if (dir <= 8 && dir == 0)
+          dir = 1;
+        
+        if (dir == 0)
+          shift >>= 1;
+        else
+          shift <<= 1;;
+
+        output_b(shift);
+        delay_ms(200);
+      }
+      break;
+    case '5': // Selección 5 ejecuta un blink.
       leds_on = leds_on == 0 ? 0xFF : 0;
       output_b(leds_on);
       delay_ms(500);
