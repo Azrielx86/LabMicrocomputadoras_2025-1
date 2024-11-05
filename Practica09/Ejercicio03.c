@@ -8,27 +8,29 @@
 
 int contador=0;
 
+//Funci贸n para escribir en uno de los displays haciendo uso del protocolo I2C
 void escribir_i2c(){
-   i2c_start();//Pone el bit uno de start y adem醩 espera la respuesta del esclavo
-   i2c_write(0x42);//REcordar que el 8vo bit es la orden! Por ejemplo la direccion aqui es 0100 001 0 <-este bit indica que se va  hacer una escritura
-   i2c_write(contador);//Despu閟 de la direcci髇, se le evia la informacion
-   i2c_stop();// Para terminar la comunicaci髇
-    }
-
+  i2c_start();         //Inicia la comunicaci贸n, Pone el bit uno de start 
+  i2c_write(0x42);     //Escribe la direcci贸n del esclavo en el bus y espera la respuesta (ACK) 
+  i2c_write(contador); //Despu茅s de la direcci贸n, se le envia el dato al esclavo
+  i2c_stop();          //Termina la comunicaci贸n
+}
 void main()
 {
-   lcd_init(LCD_ADDR,16 ,2);
-   
+   //Funci贸n de la biblioteca i2c_LCD.c que sirve para inicializar el LCD 
+   //Se env铆an como argumentos la direcci贸n del dispositivo, el n煤mero de columnas (16) y de l铆neas(2) del display
+   lcd_init(LCD_ADDR,16 ,2);   
     while(true)
    {
-     escribir_i2c();
-     
-     output_d(contador);
-     lcd_putc('\f');
-     lcd_gotoxy(1,1);
-     printf(lcd_putc, "UNAM\n");
-     printf(lcd_putc, "Contador: %d", contador);
-     delay_ms(500);
+      //Modificaci贸n del ejercicio02. Env铆a los datos necesarios al LCD para imprimir una cadena  junto con el valor del contador que 
+      //var铆a con cada iteraci贸n 
+      escribir_i2c();     
+      output_d(contador);       //Manda el valor de contador a trav茅s del puerto D
+      lcd_putc('\f');           //Para limpiar el LCD
+      lcd_gotoxy(1,1);          //Poner el cursor en la columna 1 de la fila 1.
+      printf(lcd_putc, "UNAM\n");    //Imprime "UNAM" en la primera l铆nea del LCD, \n coloca el cursor autom谩ticamente en la segunda l铆nea.
+      printf(lcd_putc, "Contador: %d", contador);   //Imprime "contador:" en la segunda l铆nea del LCD y luego el valor de contador
+      delay_ms(500);
 
      contador++;
    }
