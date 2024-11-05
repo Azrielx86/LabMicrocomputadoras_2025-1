@@ -8,12 +8,12 @@ void main()
 {
    while (1)
    {
-      output_b(0xFF);
-      printf("Todos los bits encendidos.\n");
-      delay_ms(1000);
-      output_b(0x00);
-      printf("Todos los bits apagados.\n");
-      delay_ms(1000);
+      output_b(0xFF); // Enciende todos los bits de B.
+      printf("Todos los bits encendidos.\n"); // Transmite un mensaje por TX.
+      delay_ms(1000); // Espera 1s.
+      output_b(0x00); // Apaga todos los bits de B.
+      printf("Todos los bits apagados.\n"); // Transmite el mensaje por TX.
+      delay_ms(1000); // Espera 1s.
    }
 }
 
