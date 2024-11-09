@@ -9,17 +9,33 @@
 
 #define LCD_ADDR 0X4E
 
+//EJ3 -- El timer da máximo 13ms, por lo que para contar los 10 segundos debe 
+// "desbordarse" 770 veces (10/0.013)
+
 
 int contador;
+int readFlag;
+int16 contadorTimer;
 unsigned int lectura;
 float voltaje;
+
+#int_rtcc
+timer_int()
+{
+   if(contadorTimer < 763){
+      contadorTimer++;
+   }else{
+      contadorTimer = 0; 
+      readFlag=1;
+   }
+}
+
 #int_EXT
 ext_int()
 {
    contador++;
    output_d(contador);
 }
-
 void imprimeDisplay7Seg(){
    
    //Primero obtener el valor equivalente de la lectura: 99 = 255 ; 00 = 0; x = lect; x = lect*99/255
@@ -53,19 +69,30 @@ void imprimeDisplay7Seg(){
 
 void config_inicial(){
 
+     //Para el timer
+   set_timer0(0);
+   setup_counters(RTCC_INTERNAL, RTCC_DIV_256);
    setup_adc_ports(ALL_ANALOG);
    setup_adc(ADC_CLOCK_INTERNAL);
    set_adc_channel(0);
+   
+   //Habilitar interrupciones
+   enable_interrupts(INT_RTCC);
    ext_int_edge(L_TO_H);
    enable_interrupts(INT_EXT);
    enable_interrupts(GLOBAL);
    
+ 
+   
+   
    lcd_init(LCD_ADDR, 16, 2);
    output_d(0x00);
    
-   lectura = 0;
-   contador = 0;
-   voltaje = 0;
+   lectura        = 0;
+   contador       = 0;
+   voltaje        = 0;
+   contadorTimer  = 0;
+   readFlag       = 1; //Para que realice la primer lectura de forma immediata 
 }
 
 // 5v = 255 -> lectura*5/255
@@ -76,6 +103,7 @@ void main() {
   
    while( TRUE ) {
    
+   if(readFlag){
       delay_us(20);
       lectura = read_adc();
       voltaje = (constante*(float)lectura);
@@ -83,12 +111,13 @@ void main() {
       lcd_gotoxy(1,1);
       lcd_putc('\f');
       printf(lcd_putc, "Voltaje: %0.2f ", voltaje);
-      
-      delay_ms(500);
-      
+
       printf("Decimal: %u, Hexadecimal: %x \n\r", lectura, lectura);
       
       //output_d((int)lectura);
       imprimeDisplay7Seg();
+      readFlag = 0;
+   }
+      
    }
 }
