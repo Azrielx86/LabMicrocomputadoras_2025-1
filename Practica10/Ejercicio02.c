@@ -35,7 +35,7 @@ void config_inicial(){
    enable_interrupts(INT_EXT);
    enable_interrupts(GLOBAL);
    
-   lcd_init(LCD_ADDR, 16, 2);
+   // lcd_init(LCD_ADDR, 16, 2);
    output_d(0x00);
 }
 
@@ -54,9 +54,9 @@ void main() {
       
       delay_ms(500);
       
-      lcd_gotoxy(1,1);
-      lcd_putc('\f');
-      printf(lcd_putc, "Volatje: %0.1f ", voltaje);
+      // lcd_gotoxy(1,1);
+      // lcd_putc('\f');
+      // printf(lcd_putc, "Volatje: %0.1f ", voltaje);
       
       printf("Decimal: %u, Hexadecimal: %x\n", lectura, lectura);
       
