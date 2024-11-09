@@ -20,11 +20,42 @@ ext_int()
    output_d(contador);
 }
 
-void escribir_i2c(){
+void imprimeDisplay7Seg(){
    
+   //Primero obtener el valor equivalente de la lectura: 99 = 255 ; 00 = 0; x = lect; x = lect*99/255
+   //Convertir a long para evitar desbordamiento
+   int16 lecturaLong = (long)lectura;
+   
+   //Multiplicar valor para obtener un numero en el rango [00,99]
+   
+   lecturaLong = lecturaLong*99/255;
+   
+   //VAriables para guardar cada uno de los digitos
+   int firstDigit = 0;
+   int secondDigit = 0;
+   
+   firstDigit = lecturaLong/10;
+   secondDigit = lecturaLong%10;
+   
+   
+//!   int output;
+//!   
+//!   output = 0;
+//!   
+//!   output = output | secondDigit;
+   
+   //hacer un shift del primer digito para pasarlo a la parte alta del registo
+   
+   firstDigit = firstDigit * 16;
+   
+   firstDigit = firstDigit | secondDigit;
+   
+//!   output = output | firstDigit;
+   
+   output_d(firstDigit);
+   
+    
 }
-
-
 
 void config_inicial(){
 
@@ -35,32 +66,35 @@ void config_inicial(){
    enable_interrupts(INT_EXT);
    enable_interrupts(GLOBAL);
    
-   // lcd_init(LCD_ADDR, 16, 2);
+   lcd_init(LCD_ADDR, 16, 2);
    output_d(0x00);
+   
+   lectura = 0;
+   contador = 0;
+   voltaje = 0;
 }
 
 // 5v = 255 -> lectura*5/255
 
 void main() {
    config_inicial();
-   float constante = 5/255;
+   float constante = 5.0f/255.0f; //Cuidado con conversión de tipos
   
-   lectura = 0;
    while( TRUE ) {
    
       delay_us(20);
       lectura = read_adc();
-      voltaje = (constante*lectura);
+      voltaje = (constante*(float)lectura);
+      
+      lcd_gotoxy(1,1);
+      lcd_putc('\f');
+      printf(lcd_putc, "Voltaje: %0.2f ", voltaje);
       
       delay_ms(500);
       
-      // lcd_gotoxy(1,1);
-      // lcd_putc('\f');
-      // printf(lcd_putc, "Volatje: %0.1f ", voltaje);
+      printf("Decimal: %u, Hexadecimal: %x \n\r", lectura, lectura);
       
-      printf("Decimal: %u, Hexadecimal: %x\n", lectura, lectura);
-      
-      output_d((int)lectura);
-   
+      //output_d((int)lectura);
+      imprimeDisplay7Seg();
    }
 }
