@@ -15,7 +15,7 @@ int contador;   //Contador para ejemplo con interrupciones
 unsigned int lectura;   //VAriable no signada para guardar la lectura del CAD
 float voltaje;  //Para guardar el dato del CAD pero ahora convertido a su equivalente en volts
 
-//Interrupción del pin
+//Interrupción del pin RB0
 #int_EXT
 ext_int()
 {

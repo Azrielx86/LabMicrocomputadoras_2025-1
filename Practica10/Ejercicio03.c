@@ -9,19 +9,20 @@
 
 #define LCD_ADDR 0X4E
 
-//EJ3 -- El timer da m�ximo 13ms, por lo que para contar los 10 segundos debe 
+
+int contador;   //Contador para ejemplo con interrupciones
+unsigned int lectura;   //VAriable no signada para guardar la lectura del CAD
+float voltaje;  //Para guardar el dato del CAD pero ahora convertido a su equivalente en volts
+int readFlag;  //Bandera para controlar la lectura de los datos
+int16 contadorTimer; //contador para llevar el registro de veces que el timer0 se ha desbordado
+
+//Interrupción del timer0
+//NOTA: EJ3 -- El timer da m�ximo 13ms, por lo que para contar los 10 segundos debe 
 // "desbordarse" 770 veces (10/0.013)
-
-
-int contador;
-int readFlag;
-int16 contadorTimer;
-unsigned int lectura;
-float voltaje;
-
 #int_rtcc
 timer_int()
 {
+   //Incrementa el contador si todavia no han pasado los 10 segundos, resetea el timer y prende la bandera  de lectura
    if(contadorTimer < 763){
       contadorTimer++;
    }else{
@@ -30,6 +31,7 @@ timer_int()
    }
 }
 
+//Interrupción del pin RB0
 #int_EXT
 ext_int()
 {
@@ -67,55 +69,71 @@ void imprimeDisplay7Seg(){
      
 }
 
+//Realiza todas las configuraciones del micro para poder realizar los ejercicios de la práctica.
 void config_inicial(){
 
-     //Para el timer
-   set_timer0(0);
-   setup_counters(RTCC_INTERNAL, RTCC_DIV_256);
-   setup_adc_ports(ALL_ANALOG);
-   setup_adc(ADC_CLOCK_INTERNAL);
-   set_adc_channel(0);
+   //Configuración del CAD
+   setup_adc_ports(ALL_ANALOG);     //Todas los pines analógicos
+   setup_adc(ADC_CLOCK_INTERNAL);   //utilizar el reloj interno
+   set_adc_channel(0);              //Utilizar el canal 0
+
+   //Configuración el timer
+   set_timer0(0); //Inicializado en 0
+   setup_counters(RTCC_INTERNAL, RTCC_DIV_256); //Utiliza el reloj interno con un preescalado de 256
+
    
-   //Habilitar interrupciones
-   enable_interrupts(INT_RTCC);
-   ext_int_edge(L_TO_H);
-   enable_interrupts(INT_EXT);
-   enable_interrupts(GLOBAL);
+   //Configuración de interrupciones
+   enable_interrupts(INT_RTCC);  //Habilita la interrupción del timer0
+   ext_int_edge(L_TO_H);         //Interrupción externa en flanco de subida
+   enable_interrupts(INT_EXT);   //habilita interrupción externa
+   enable_interrupts(GLOBAL);    //Habilita interrupciones globales
+    
+   //Inicializa el LCD con la dirección del dispositivo, No. de columnas y No. de filas
+   lcd_init(LCD_ADDR1, 16, 2);      
+   output_d(0x00);   //Inicializa en 0 el puerto D
    
- 
-   
-   
-   lcd_init(LCD_ADDR, 16, 2);
-   output_d(0x00);
-   
+   //Inicializa todas las variables utilizadas.
    lectura        = 0;
    contador       = 0;
    voltaje        = 0;
    contadorTimer  = 0;
-   readFlag       = 1; //Para que realice la primer lectura de forma immediata 
+   readFlag       = 1; //1 Para que realice la primer lectura de forma immediata 
 }
 
 // 5v = 255 -> lectura*5/255
 
 void main() {
+   
+   //Configuraciones iniciales
    config_inicial();
-   float constante = 5.0f/255.0f; //Cuidado con conversi�n de tipos
+   
+   // PAra convertir la lectura a volts: 5v = 255; x = lectura -> x = lectura*5/255
+   float constante = 5.0f/255.0f; //Factor de conversion para una resolución de 8 bits
   
    while( TRUE ) {
    
+   //Revisa la bandera de lectura para saber si se debe realizar la lectura del CAD o no.
    if(readFlag){
+
       delay_us(20);
+
+      //Lectura de los datos del CAD
       lectura = read_adc();
       voltaje = (constante*(float)lectura);
       
+      //Imprime el dato del voltaje en el LCD
       lcd_gotoxy(1,1);
       lcd_putc('\f');
       printf(lcd_putc, "Voltaje: %0.2f ", voltaje);
 
+      //Imprime el resultado de la lectura en la terminal
       printf("Decimal: %u, Hexadecimal: %x \n\r", lectura, lectura);
       
-      //output_d((int)lectura);
+      
+      //Llama a la función para imprimir el resultado en el display de 7 segmentos
       imprimeDisplay7Seg();
+
+      //Apaga la bandera de lectura.
       readFlag = 0;
    }
       
