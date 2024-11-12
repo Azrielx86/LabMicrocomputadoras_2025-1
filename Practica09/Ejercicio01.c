@@ -6,20 +6,22 @@
 
 int contador=0;
 
+//Funci贸n para escribir en uno de los displays haciendo uso del protocolo I2C
 void escribir_i2c(){
-   i2c_start();//Pone el bit uno de start y adem醩 espera la respuesta del esclavo
-   i2c_write(0x42);//REcordar que el 8vo bit es la orden! Por ejemplo la direccion aqui es 0100 001 0 <-este bit indica que se va  hacer una escritura
-   i2c_write(contador);//Despu閟 de la direcci髇, se le evia la informacion
-   i2c_stop();// Para terminar la comunicaci髇
-    }
-    
-//Para leer usar I2C_READ y asignarle el valor a la variable (lee el dato recibido), poner un cero en el argumento 
-//para finalizar la comunicaci髇.
+  i2c_start();         //Inicia la comunicaci贸n, Pone el bit uno de start 
+  //Escribe la direcci贸n del esclavo en el bus y espera la respuesta (ACK)
+  //Recordar que el 8vo bit es la orden! Por ejemplo la direccion aqui es 0100 001 0 <-este bit indica que se va  hacer una escritura
+  i2c_write(0x42);     
+  i2c_write(contador); //Despu茅s de la direcci贸n, se le envia el dato al esclavo
+  i2c_stop();          //Termina la comunicaci贸n
+}
 
 void main()
 {
     while(true)
    {
+    //Llama a la funci贸n escribir_i2c para mandar los datos al esclavo, que en este caso controla un display,
+    //y manda los datos de la variable contador.
      escribir_i2c();
      delay_ms(500);
      contador++;
