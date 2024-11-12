@@ -7,7 +7,7 @@
 
 #include <i2c_LCD.c>
 
-#define LCD_ADDR 0X4E
+#define LCD_ADDR1 0X4E
 
 
 int contador;   //Contador para ejemplo con interrupciones
