@@ -5,14 +5,17 @@
 #use i2c(MASTER, SDA=PIN_C4, SCL=PIN_C3,SLOW, NOFORCE_SW)
 #use rs232(baud=9600, xmit=PIN_C6, rcv=PIN_C7)
 
+//Libreria para controlar el LCD mediante el protocolo I2C
 #include <i2c_LCD.c>
 
-#define LCD_ADDR 0X4E
+#define LCD_ADDR1 0X4E
 
 
-int contador;
-unsigned int lectura;
-float voltaje;
+int contador;   //Contador para ejemplo con interrupciones
+unsigned int lectura;   //VAriable no signada para guardar la lectura del CAD
+float voltaje;  //Para guardar el dato del CAD pero ahora convertido a su equivalente en volts
+
+//Interrupci贸n del pin
 #int_EXT
 ext_int()
 {
@@ -20,75 +23,88 @@ ext_int()
    output_d(contador);
 }
 
+//Funci贸n que convierte el resultado de la lectura del cad a un valor en el rango de [00, 99]
+//Realiza la conversi贸n a BCD para despu茅s mandarlo a uno de los displas mediante el puerto paralelo.
 void imprimeDisplay7Seg(){
    
    //Primero obtener el valor equivalente de la lectura: 99 = 255 ; 00 = 0; x = lect; x = lect*99/255
-   //Convertir a long para evitar desbordamiento
+   //Convertimos a long para evitar desbordamiento
    int16 lecturaLong = (long)lectura;
    
    //Multiplicar valor para obtener un numero en el rango [00,99]
-   
    lecturaLong = lecturaLong*99/255;
    
-   //VAriables para guardar cada uno de los digitos
+   //Variables para guardar cada uno de los digitos
    int firstDigit = 0;
    int secondDigit = 0;
    
-   firstDigit = lecturaLong/10;
-   secondDigit = lecturaLong%10;
+   firstDigit = lecturaLong/10;  //El primer d铆gito es el resultado de la divisi贸n entera entre 10
+   secondDigit = lecturaLong%10; //El segundo digito es el residuo de la divisi贸n entera entre 10
    
    
-   //hacer un shift del primer digito para pasarlo a la parte alta del registo
+   //Hacer un Shift a la izquierda del primer digito 4 veces para pasarlo a la parte alta del registo
+   firstDigit = firstDigit * 16;    //multiplicar por 16 es igual a hacer el shift 4 veces.
    
-   firstDigit = firstDigit * 16;
-   
-   //Or con el segundo d韌ito para colocar su valor en la parte baja.
+   //Se hace una operaci贸n OR con el segundo d铆gito para colocar su valor en la parte baja.
    firstDigit = firstDigit | secondDigit;
    
-   
+   //Se env铆a el dato por el puerto paralelo.
    output_d(firstDigit);
-   
-    
+     
 }
 
+//Realiza todas las configuraciones del micro para poder realizar los ejercicios de la pr谩ctica.
 void config_inicial(){
 
-   setup_adc_ports(ALL_ANALOG);
-   setup_adc(ADC_CLOCK_INTERNAL);
-   set_adc_channel(0);
-   ext_int_edge(L_TO_H);
-   enable_interrupts(INT_EXT);
-   enable_interrupts(GLOBAL);
+   //Configuraci贸n del CAD
+   setup_adc_ports(ALL_ANALOG);     //Todas los pines anal贸gicos
+   setup_adc(ADC_CLOCK_INTERNAL);   //utilizar el reloj interno
+   set_adc_channel(0);              //Utilizar el canal 0
+
+   //Configuraci贸n de interrupciones
+   ext_int_edge(L_TO_H);            //Interrupci贸n externa en flanco de subida
+   enable_interrupts(INT_EXT);      //habilita interrupci贸n externa
+   enable_interrupts(GLOBAL);       //Habilita interrupciones globales
    
-   lcd_init(LCD_ADDR, 16, 2);
-   output_d(0x00);
+   //Inicializa el LCD con la direcci贸n del dispositivo, No. de columnas y No. de filas
+   lcd_init(LCD_ADDR1, 16, 2);      
+   output_d(0x00);   //Inicializa en 0 el puerto D
    
+   //Inicializa todas las variables utilizadas.
    lectura = 0;
    contador = 0;
    voltaje = 0;
 }
 
-// 5v = 255 -> lectura*5/255
+
 
 void main() {
+
+   //Configuraciones iniciales
    config_inicial();
-   float constante = 5.0f/255.0f; //Cuidado con conversi髇 de tipos
+   
+   // PAra convertir la lectura a volts: 5v = 255; x = lectura -> x = lectura*5/255
+   float constante = 5.0f/255.0f; //Factor de conversion para una resoluci贸n de 8 bits
   
    while( TRUE ) {
    
       delay_us(20);
+
+      //Lectura de los datos del CAD
       lectura = read_adc();
       voltaje = (constante*(float)lectura);
       
+      //Imprime el dato del voltaje en el LCD
       lcd_gotoxy(1,1);
       lcd_putc('\f');
       printf(lcd_putc, "Voltaje: %0.2f ", voltaje);
       
       delay_ms(500);
       
+      //Imprime el resultado de la lectura en la terminal
       printf("Decimal: %u, Hexadecimal: %x \n\r", lectura, lectura);
       
-      //output_d((int)lectura);
+      //Llama a la funci贸n para imprimir el resultado en el display de 7 segmentos
       imprimeDisplay7Seg();
    }
 }

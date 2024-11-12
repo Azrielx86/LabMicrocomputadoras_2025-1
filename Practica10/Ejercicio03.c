@@ -9,7 +9,7 @@
 
 #define LCD_ADDR 0X4E
 
-//EJ3 -- El timer da m醲imo 13ms, por lo que para contar los 10 segundos debe 
+//EJ3 -- El timer da m锟絰imo 13ms, por lo que para contar los 10 segundos debe 
 // "desbordarse" 770 veces (10/0.013)
 
 
@@ -36,35 +36,35 @@ ext_int()
    contador++;
    output_d(contador);
 }
+
+//Funci贸n que convierte el resultado de la lectura del cad a un valor en el rango de [00, 99]
+//Realiza la conversi贸n a BCD para despu茅s mandarlo a uno de los displas mediante el puerto paralelo.
 void imprimeDisplay7Seg(){
    
    //Primero obtener el valor equivalente de la lectura: 99 = 255 ; 00 = 0; x = lect; x = lect*99/255
-   //Convertir a long para evitar desbordamiento
+   //Convertimos a long para evitar desbordamiento
    int16 lecturaLong = (long)lectura;
    
    //Multiplicar valor para obtener un numero en el rango [00,99]
-   
    lecturaLong = lecturaLong*99/255;
    
-   //VAriables para guardar cada uno de los digitos
+   //Variables para guardar cada uno de los digitos
    int firstDigit = 0;
    int secondDigit = 0;
    
-   firstDigit = lecturaLong/10;
-   secondDigit = lecturaLong%10;
+   firstDigit = lecturaLong/10;  //El primer d铆gito es el resultado de la divisi贸n entera entre 10
+   secondDigit = lecturaLong%10; //El segundo digito es el residuo de la divisi贸n entera entre 10
    
    
-   //hacer un shift del primer digito para pasarlo a la parte alta del registo
+   //Hacer un Shift a la izquierda del primer digito 4 veces para pasarlo a la parte alta del registo
+   firstDigit = firstDigit * 16;    //multiplicar por 16 es igual a hacer el shift 4 veces.
    
-   firstDigit = firstDigit * 16;
-   
-   //Or con el segundo d韌ito para colocar su valor en la parte baja.
+   //Se hace una operaci贸n OR con el segundo d铆gito para colocar su valor en la parte baja.
    firstDigit = firstDigit | secondDigit;
    
-   
+   //Se env铆a el dato por el puerto paralelo.
    output_d(firstDigit);
-   
-    
+     
 }
 
 void config_inicial(){
@@ -99,7 +99,7 @@ void config_inicial(){
 
 void main() {
    config_inicial();
-   float constante = 5.0f/255.0f; //Cuidado con conversi髇 de tipos
+   float constante = 5.0f/255.0f; //Cuidado con conversi锟絥 de tipos
   
    while( TRUE ) {
    
