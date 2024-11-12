@@ -17,12 +17,12 @@ int readFlag;  //Bandera para controlar la lectura de los datos
 int16 contadorTimer; //contador para llevar el registro de veces que el timer0 se ha desbordado
 
 //Interrupción del timer0
-//NOTA: EJ3 -- El timer da m�ximo 13ms, por lo que para contar los 10 segundos debe 
+//NOTA: EJ3 -- El timer da máximo 13ms, por lo que para contar los 10 segundos debe 
 // "desbordarse" 770 veces (10/0.013)
 #int_rtcc
 timer_int()
 {
-   //Incrementa el contador si todavia no han pasado los 10 segundos, resetea el timer y prende la bandera  de lectura
+   //Incrementa el contador si todavia no han pasado los 10 segundos, resetea el contador y prende la bandera  de lectura
    if(contadorTimer < 763){
       contadorTimer++;
    }else{
@@ -100,7 +100,6 @@ void config_inicial(){
    readFlag       = 1; //1 Para que realice la primer lectura de forma immediata 
 }
 
-// 5v = 255 -> lectura*5/255
 
 void main() {
    
@@ -112,30 +111,30 @@ void main() {
   
    while( TRUE ) {
    
-   //Revisa la bandera de lectura para saber si se debe realizar la lectura del CAD o no.
-   if(readFlag){
+      //Revisa la bandera de lectura para saber si se debe realizar la lectura del CAD o no.
+      if(readFlag){
 
-      delay_us(20);
+         delay_us(20);
 
-      //Lectura de los datos del CAD
-      lectura = read_adc();
-      voltaje = (constante*(float)lectura);
-      
-      //Imprime el dato del voltaje en el LCD
-      lcd_gotoxy(1,1);
-      lcd_putc('\f');
-      printf(lcd_putc, "Voltaje: %0.2f ", voltaje);
+         //Lectura de los datos del CAD
+         lectura = read_adc();
+         voltaje = (constante*(float)lectura);
+         
+         //Imprime el dato del voltaje en el LCD
+         lcd_gotoxy(1,1);
+         lcd_putc('\f');
+         printf(lcd_putc, "Voltaje: %0.2f ", voltaje);
 
-      //Imprime el resultado de la lectura en la terminal
-      printf("Decimal: %u, Hexadecimal: %x \n\r", lectura, lectura);
-      
-      
-      //Llama a la función para imprimir el resultado en el display de 7 segmentos
-      imprimeDisplay7Seg();
+         //Imprime el resultado de la lectura en la terminal
+         printf("Decimal: %u, Hexadecimal: %x \n\r", lectura, lectura);
+         
+         
+         //Llama a la función para imprimir el resultado en el display de 7 segmentos
+         imprimeDisplay7Seg();
 
-      //Apaga la bandera de lectura.
-      readFlag = 0;
-   }
-      
+         //Apaga la bandera de lectura.
+         readFlag = 0;
+      }
+         
    }
 }
