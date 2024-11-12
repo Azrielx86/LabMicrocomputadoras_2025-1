@@ -16,9 +16,6 @@ void escribir_i2c(){
   i2c_stop();          //Termina la comunicación
 }
 
-//Para leer usar I2C_READ y asignarle el valor a la variable (lee el dato recibido), poner un cero en el argumento 
-//para finalizar la comunicaci�n.
-
 void main()
 {
     while(true)

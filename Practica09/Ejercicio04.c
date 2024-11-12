@@ -19,6 +19,10 @@ void escribir_i2c(){
   i2c_stop();          //Termina la comunicación
 }
 
+//NOTA: 
+//Para leer usar I2C_READ y asignarle el valor a la variable (lee el dato recibido), poner un cero en el argumento 
+//para finalizar la comunicaci�n.
+
 //Función para leer datos de un switch haciendo uso de I2C
 void leer_i2c(){
    i2c_start();   //Inicia la comunicación, Pone el bit uno de start 
