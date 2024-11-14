@@ -2,9 +2,10 @@
 
 unsigned int operando1;
 unsigned int operando2; 
-int resultado;
+int16 resultado;
 char operador;
-int lectura_cad;
+int lectura_cad_operador;
+int lectura_cad_base;
 
 //Interrupci�n del pin RB0
 #int_EXT
@@ -12,7 +13,7 @@ ext_int()
 {
    switch(operador){
       case '+':
-         resultado = operando1 + operando2;
+         resultado = (long)operando1 + (long)operando2;
       break;
       
       case '-':
@@ -20,11 +21,16 @@ ext_int()
       break;
       
       case '*':
-         resultado = operando1 * operando2;
+         resultado = (long)operando1 * (long)operando2;
       break;
       
       case '/':
-         resultado = operando1 / operando2;
+         if(operando2 != 0)
+            resultado = operando1 / operando2;
+         else{
+            printf("No se puede dividir entre cero! \n\r");
+            return;
+         }
       break;
       
       default:
@@ -32,14 +38,19 @@ ext_int()
       break;
    }
    
-   printf("Operacion: %d %c %d = %d \n\r", operando1, operador, operando2, resultado);
+   if(lectura_cad_base > 127){
+      printf("Operacion: %LX %c %LX = %4LX \n\r", operando1, operador, operando2, resultado);
+      return;
+   }
+   
+   printf("Operacion: %u %c %u = %lu \n\r", operando1, operador, operando2, resultado);
 }
 
 //Realiza todas las configuraciones del micro para poder realizar los ejercicios de la práctica.
 void config_inicial(){
    
    //Configuracion CAD
-   setup_adc_ports(AN0);     
+   setup_adc_ports(ALL_ANALOG);     
    setup_adc(ADC_CLOCK_INTERNAL);  
    set_adc_channel(0);  
    
@@ -50,50 +61,64 @@ void config_inicial(){
    enable_interrupts(INT_EXT);   //habilita interrupción externa
    enable_interrupts(GLOBAL);    //Habilita interrupciones globales
    
-   operando1 = 0;
-   operando2 = 0; 
-   resultado = 0;
-   lectura_cad = 0;
+   operando1            = 0;
+   operando2            = 0; 
+   resultado            = 0;
+   lectura_cad_operador = 0;
+   lectura_cad_base     = 0;
 }
 
+void leeri2c(){
+   i2c_start();
+   i2c_write(SWITCH_ADDR | 0x01);
+   operando2 = i2c_read(0);
+   i2c_stop();
+}
 
 void main() {
 
    //Configuraciones iniciales
    config_inicial();
 
-
    while( TRUE ) {
       
       operando1 = input_d();
       
-      operando2 = operando1 & 0x0F;
-      operando1 = operando1 & 0xF0;
-      operando1 = operando1 / 16;
       
-      lectura_cad = read_adc();
+      leeri2c();
       
-      if(lectura_cad <= 63){
-         resultado = operando1 + operando2;
+      set_adc_channel(0); 
+      delay_us(50);
+      lectura_cad_operador = read_adc();
+         
+      set_adc_channel(1);  
+      delay_us(50);
+      lectura_cad_base = read_adc();
+      
+      
+      if(lectura_cad_operador <= 63){
          operador = '+';
-      }else if (lectura_cad <= 127){
-         resultado = operando1 - operando2;
+      }else if (lectura_cad_operador <= 127){
          operador = '-';
-      }else if (lectura_cad <= 189){
-         resultado = operando1 * operando2;
+      }else if (lectura_cad_operador <= 189){
          operador = '*';
       }else{
          operador = '/';
-         if(operando2 != 0)
-            resultado = operando1 / operando2;
-         else 
-            resultado = -255;
       }
       
       
       lcd_gotoxy(1,1);
       lcd_putc('\f');
-      printf(lcd_putc, "%d %c %d \n", operando1, operador,operando2);
+      
+      if(lectura_cad_base <= 127){
+         printf(lcd_putc, "[DEC]Operacion: \n");
+         lcd_gotoxy(4,2);
+         printf(lcd_putc, "%u %c %u ", operando1, operador,operando2);
+      }else{
+         printf(lcd_putc, "[HEX]Operacion: \n");
+         lcd_gotoxy(4,2);
+         printf(lcd_putc, "%X %c %X ", operando1, operador,operando2);
+      }
       
       delay_ms(1000);
       

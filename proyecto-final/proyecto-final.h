@@ -8,3 +8,4 @@
 #include <i2c_LCD.c>
 
 #define LCD_ADDR1 0X4E
+#define SWITCH_ADDR 0X40
