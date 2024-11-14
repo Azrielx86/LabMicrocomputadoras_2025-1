@@ -6,6 +6,8 @@ int16 resultado;
 char operador;
 int lectura_cad_operador;
 int lectura_cad_base;
+int pwm_duty;
+int duty_flag;
 
 //InterrupciÛn del pin RB0
 #int_EXT
@@ -46,8 +48,35 @@ ext_int()
    printf("Operacion: %u %c %u = %lu \n\r", operando1, operador, operando2, resultado);
 }
 
+#int_rtcc
+timer_int()
+{
+   
+   if(duty_flag){
+      pwm_duty = pwm_duty + 5;
+   }else{
+      pwm_duty = pwm_duty - 5;
+   }
+   
+   if(pwm_duty == 255)
+      duty_flag = 0;
+   else if(pwm_duty == 0)
+      duty_flag = 1;
+   
+   set_pwm1_duty(pwm_duty);
+}
+
+
 //Realiza todas las configuraciones del micro para poder realizar los ejercicios de la pr√°ctica.
 void config_inicial(){
+
+   operando1            = 0;
+   operando2            = 0; 
+   resultado            = 0;
+   lectura_cad_operador = 0;
+   lectura_cad_base     = 0;
+   pwm_duty             = 0;
+   duty_flag            = 1;
    
    //Configuracion CAD
    setup_adc_ports(ALL_ANALOG);     
@@ -57,15 +86,18 @@ void config_inicial(){
    //InicializaciÛn del lcd i2c
    lcd_init(LCD_ADDR1, 16,2);
 
+   set_timer0(0); //Inicializado en 0
+   setup_counters(RTCC_INTERNAL, RTCC_DIV_256); //Utiliza el reloj interno con un preescalado de 256
+
+   enable_interrupts(INT_RTCC);
    ext_int_edge(L_TO_H);         //Interrupci√≥n externa en flanco de subida
    enable_interrupts(INT_EXT);   //habilita interrupci√≥n externa
    enable_interrupts(GLOBAL);    //Habilita interrupciones globales
+     
+   setup_ccp1(CCP_PWM);
+   setup_timer_2(T2_DIV_BY_16,255,1);
+   set_pwm1_duty(pwm_duty);
    
-   operando1            = 0;
-   operando2            = 0; 
-   resultado            = 0;
-   lectura_cad_operador = 0;
-   lectura_cad_base     = 0;
 }
 
 void leeri2c(){
