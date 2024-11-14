@@ -140,7 +140,7 @@ void main() {
    //Arreglos con los datos de los alumnos 
    char * nombres[NUM_ALUMNOS] = {"Edgar Chalico" , "Rodrigo Tapia", "Daniel Flores", "Adrian Cruz"};
    char * cuentas[NUM_ALUMNOS] = {"318192950", "313044270", "318187952", "318103273"};
-   int  gruposTeo[NUM_ALUMNOS] = {1,2,1,4};
+   int  gruposTeo[NUM_ALUMNOS] = {1,2,1,1};
 
    int i; //Contador para ciclos
    while( TRUE ) {
